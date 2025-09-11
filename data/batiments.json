@@ -1,10 +1,11 @@
 {
 "type": "FeatureCollection",
-"name": "bati1",
+"name": "bati_ins",
 "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
 "features": [
-{ "type": "Feature", "properties": { "OBJECTID": 1071166 }, "geometry": { "type": "Point", "coordinates": [ 9.878136999749225, 37.273696000413779 ] } },
-{ "type": "Feature", "properties": { "OBJECTID": 1071167 }, "geometry": { "type": "Point", "coordinates": [ 9.878120999598323, 37.273445999876571 ] } },
-{ "type": "Feature", "properties": { "OBJECTID": 1071168 }, "geometry": { "type": "Point", "coordinates": [ 9.87781999960308, 37.273936999941021 ] } }
+{ "type": "Feature", "properties": { "OBJECTID": 15289 }, "geometry": { "type": "Point", "coordinates": [ 10.18118800009319, 36.816290000215332 ] } },
+{ "type": "Feature", "properties": { "OBJECTID": 15291 }, "geometry": { "type": "Point", "coordinates": [ 10.181231999670448, 36.816055999797868 ] } },
+{ "type": "Feature", "properties": { "OBJECTID": 15292 }, "geometry": { "type": "Point", "coordinates": [ 10.180917000458946, 36.816058000186786 ] } },
+{ "type": "Feature", "properties": { "OBJECTID": 15293 }, "geometry": { "type": "Point", "coordinates": [ 10.180837999754225, 36.816253000376307 ] } }
 ]
 }

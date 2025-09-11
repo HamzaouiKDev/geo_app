@@ -7,9 +7,10 @@ const URLS_TO_CACHE = [
     '/css/style.css',
     '/js/main.js',
     '/data/ilots.json',
-    '/data/bati_converti.json',
+    '/data/batiments.json',
     '/manifest.json',
     '/img/icon-192.png',
+    '/img/building-icon.png', 
     'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
     'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
     'https://unpkg.com/dexie@3.2.5/dist/dexie.js'
