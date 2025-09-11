@@ -1,0 +1,10 @@
+{
+"type": "FeatureCollection",
+"name": "bati",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::32632" } },
+"features": [
+{ "type": "Feature", "properties": { "OBJECTID": 1071166 }, "geometry": { "type": "Point", "coordinates": [ 577853.055499999783933, 4125596.3926 ] } },
+{ "type": "Feature", "properties": { "OBJECTID": 1071167 }, "geometry": { "type": "Point", "coordinates": [ 577851.894399999640882, 4125568.643899999558926 ] } },
+{ "type": "Feature", "properties": { "OBJECTID": 1071168 }, "geometry": { "type": "Point", "coordinates": [ 577824.702499999664724, 4125622.868699999526143 ] } }
+]
+}

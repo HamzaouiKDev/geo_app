@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Application d'Enquête</title>
+    
+    <meta name="theme-color" content="#007bff"/>
+    <link rel="apple-touch-icon" href="/img/icon-192.png">
+    <link rel="manifest" href="manifest.json">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/png" href="/img/icon-192.png">
+
+</head>
+<body>
+    <div id="map"></div>
+    
+    <div id="questionnaire-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h3>Questionnaire Ménage N° <span id="menage-id"></span></h3>
+            <form id="enquete-form">
+                <div class="form-group">
+                    <label for="chef_menage">Nom du chef de ménage :</label>
+                    <input type="text" id="chef_menage" name="chef_menage" required>
+                </div>
+                <div class="form-group">
+                    <label for="nombre_personnes">Nombre de personnes dans le ménage :</label>
+                    <input type="number" id="nombre_personnes" name="nombre_personnes" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="observations">Observations :</label>
+                    <textarea id="observations" name="observations" rows="3"></textarea>
+                </div>
+                <button type="submit">Enregistrer Localement</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script src="https://unpkg.com/dexie@3.2.5/dist/dexie.js"></script>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
