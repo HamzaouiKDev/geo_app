@@ -10,28 +10,24 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Initialisation de la carte ---
     const map = L.map('map').setView([37.2736, 9.8781], 16);
 
-    // Définition de la couche de base "Plan" (OpenStreetMap)
-const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    maxZoom: 19
-});
+    // Définition des couches de base
+    const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19
+    });
+    const satelliteLayer = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{
+        maxZoom: 20,
+        subdomains:['mt0','mt1','mt2','mt3'],
+        attribution: 'Map data &copy;2024 Google'
+    });
 
-// Définition de la couche de base "Satellite" (Esri World Imagery)
-const satelliteLayer = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{
-    maxZoom: 20,
-    subdomains:['mt0','mt1','mt2','mt3'],
-    attribution: 'Map data &copy;2024 Google'
-});
-// Ajout de la couche par défaut à la carte (le plan s'affichera au démarrage)
-osmLayer.addTo(map);
-// Création d'un objet pour contenir nos couches de base
-const baseMaps = {
-    "Plan": osmLayer,
-    "Satellite": satelliteLayer
-};
+    osmLayer.addTo(map);
+    const baseMaps = {
+        "Plan": osmLayer,
+        "Satellite": satelliteLayer
+    };
+    L.control.layers(baseMaps).addTo(map);
 
-// Ajout du contrôle des couches à la carte
-L.control.layers(baseMaps).addTo(map);
     // --- Géolocalisation ---
     navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -54,32 +50,45 @@ L.control.layers(baseMaps).addTo(map);
             map.fitBounds(ilotLayer.getBounds());
             ilotLayer.addTo(map);
 
-            // --- 2. Charger les bâtiments (Points) ---
+            // --- 2. Charger les bâtiments (Points) avec le plugin araignée ---
             const batiResponse = await fetch('data/batiments.json');
             const batiData = await batiResponse.json();
-          // NEW CODE
-// First, define your custom building icon
-const buildingIcon = L.icon({
-    iconUrl: 'img/building-icon.png', // Path to your new icon
-    iconSize: [32, 32],               // Size of the icon in pixels
-    iconAnchor: [16, 32],             // Point of the icon that corresponds to marker's location
-    popupAnchor: [0, -32]             // Point from which the popup should open
-});
 
-// Then, load the GeoJSON layer using the new icon
-L.geoJSON(batiData, {
-    pointToLayer: (feature, latlng) => {
-        // Use L.marker with your custom icon instead of L.rectangle
-        return L.marker(latlng, { icon: buildingIcon });
-    },
-    onEachFeature: (feature, layer) => {
-        // The hover and click events remain the same
-        layer.bindTooltip(`Bâtiment ID: ${feature.properties.OBJECTID}`);
-        layer.on('click', () => {
-            openQuestionnaire(feature.properties);
-        });
-    }
-}).addTo(map);
+            // Initialiser le spiderfier
+            const oms = new OverlappingMarkerSpiderfier(map);
+
+            const buildingIcon = L.icon({
+                iconUrl: 'img/building-icon.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32],
+                popupAnchor: [0, -32]
+            });
+
+            // Créer la couche GeoJSON des bâtiments
+            const batiLayer = L.geoJSON(batiData, {
+                pointToLayer: (feature, latlng) => {
+                    const marker = L.marker(latlng, { icon: buildingIcon });
+                    // Attacher les données de la feature au marqueur pour un accès facile
+                    marker.feature = feature; 
+                    return marker;
+                },
+                onEachFeature: (feature, layer) => {
+                    layer.bindTooltip(`Bâtiment ID: ${feature.properties.OBJECTID}`);
+                    // On ajoute le marqueur au spiderfier pour qu'il le gère
+                    oms.addMarker(layer); 
+                }
+            });
+            
+            // On ajoute la couche à la carte pour que les marqueurs soient visibles
+            batiLayer.addTo(map);
+
+            // ** LA MODIFICATION CLÉ EST ICI **
+            // On utilise l'écouteur d'événement du plugin.
+            // Il ne se déclenche que pour un clic sur un marqueur final (non superposé).
+            oms.addListener('click', (marker) => {
+                openQuestionnaire(marker.feature.properties);
+            });
+
         } catch (error) {
             console.error("Erreur de chargement des données GeoJSON:", error);
             alert("Impossible de charger les données de la carte.");
@@ -117,9 +126,7 @@ L.geoJSON(batiData, {
         data.objectId = form.dataset.objectId;
         data.timestamp = new Date().toISOString();
         data.synced = 0;
-
         await saveResponse(data);
-        
         closeQuestionnaire();
         alert('Réponse enregistrée localement avec succès !');
     });
