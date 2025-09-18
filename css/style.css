@@ -83,3 +83,28 @@ form button {
 form button:hover {
     background-color: #0056b3;
 }
+
+/* Style pour les marqueurs en forme de cercle */
+.custom-circle-icon {
+    background-color: white;
+    border: 2px solid #555; /* Bordure grise foncée */
+    border-radius: 50%;     /* C'est ce qui crée le cercle */
+    box-shadow: 0 0 5px rgba(0,0,0,0.5); /* Ombre portée pour la visibilité */
+}
+
+/* NOUVEAUX STYLES DE STATUT */
+.status-complet {
+    background-color: #28a745; /* Vert */
+    border-color: #1e7e34;
+}
+
+.status-refus {
+    background-color: #dc3545; /* Rouge */
+    border-color: #b21f2d;
+}
+
+/* CORRIGEZ CETTE LIGNE */
+.status-non_entame { /* <<<<<<<<<<< Mettre un UNDERSCORE ici */
+    background-color: #ffc107; /* Orange */
+    border-color: #d39e00;
+}

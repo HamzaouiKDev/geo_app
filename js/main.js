@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Configuration de la base de données ---
     const db = new Dexie('enqueteDB');
     db.version(1).stores({
-        reponses: '++id, objectId, timestamp, synced'
+        reponses: '++id, objectId, timestamp, synced, statut' // Ajout du champ statut
     });
 
     // --- Initialisation de la carte ---
@@ -22,10 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     osmLayer.addTo(map);
-    const baseMaps = {
-        "Plan": osmLayer,
-        "Satellite": satelliteLayer
-    };
+    const baseMaps = { "Plan": osmLayer, "Satellite": satelliteLayer };
     L.control.layers(baseMaps).addTo(map);
 
     // --- Géolocalisation ---
@@ -37,10 +34,17 @@ document.addEventListener('DOMContentLoaded', () => {
         () => console.warn("Géolocalisation refusée."),
         { enableHighAccuracy: true }
     );
+    
+    // Pour garder une référence à tous les marqueurs créés
+    const markers = {};
 
     // --- Chargement des données GeoJSON ---
     async function loadData(map) {
         try {
+            // --- Lire les réponses existantes d'IndexedDB d'abord ---
+            const reponsesArray = await db.reponses.toArray();
+            const reponsesMap = new Map(reponsesArray.map(item => [item.objectId, item]));
+
             // --- 1. Charger les îlots (Polygones) ---
             const ilotsResponse = await fetch('data/ilots.json');
             const ilotsData = await ilotsResponse.json();
@@ -50,41 +54,39 @@ document.addEventListener('DOMContentLoaded', () => {
             map.fitBounds(ilotLayer.getBounds());
             ilotLayer.addTo(map);
 
-            // --- 2. Charger les bâtiments (Points) avec le plugin araignée ---
+            // --- 2. Charger les bâtiments (Points) ---
             const batiResponse = await fetch('data/batiments.json');
             const batiData = await batiResponse.json();
 
-            // Initialiser le spiderfier
             const oms = new OverlappingMarkerSpiderfier(map);
 
-            const buildingIcon = L.icon({
-                iconUrl: 'img/building-icon.png',
-                iconSize: [32, 32],
-                iconAnchor: [16, 32],
-                popupAnchor: [0, -32]
-            });
-
-            // Créer la couche GeoJSON des bâtiments
             const batiLayer = L.geoJSON(batiData, {
                 pointToLayer: (feature, latlng) => {
-                    const marker = L.marker(latlng, { icon: buildingIcon });
-                    // Attacher les données de la feature au marqueur pour un accès facile
-                    marker.feature = feature; 
+                    const objectId = feature.properties.OBJECTID;
+                    const reponse = reponsesMap.get(String(objectId));
+                    
+                    const statusClass = reponse ? `status-${reponse.statut}` : '';
+
+                    const circleIcon = L.divIcon({
+                        className: `custom-circle-icon ${statusClass}`,
+                        iconSize: [16, 16]
+                    });
+
+                    const marker = L.marker(latlng, { icon: circleIcon });
+                    marker.feature = feature;
+                    
+                    markers[objectId] = marker;
+                    
                     return marker;
                 },
                 onEachFeature: (feature, layer) => {
                     layer.bindTooltip(`Bâtiment ID: ${feature.properties.OBJECTID}`);
-                    // On ajoute le marqueur au spiderfier pour qu'il le gère
-                    oms.addMarker(layer); 
+                    oms.addMarker(layer);
                 }
             });
             
-            // On ajoute la couche à la carte pour que les marqueurs soient visibles
             batiLayer.addTo(map);
 
-            // ** LA MODIFICATION CLÉ EST ICI **
-            // On utilise l'écouteur d'événement du plugin.
-            // Il ne se déclenche que pour un clic sur un marqueur final (non superposé).
             oms.addListener('click', (marker) => {
                 openQuestionnaire(marker.feature.properties);
             });
@@ -126,14 +128,25 @@ document.addEventListener('DOMContentLoaded', () => {
         data.objectId = form.dataset.objectId;
         data.timestamp = new Date().toISOString();
         data.synced = 0;
+
         await saveResponse(data);
+        
+        const markerToUpdate = markers[data.objectId];
+        if (markerToUpdate) {
+            const newIcon = L.divIcon({
+                className: `custom-circle-icon status-${data.statut}`,
+                iconSize: [16, 16]
+            });
+            markerToUpdate.setIcon(newIcon);
+        }
+
         closeQuestionnaire();
         alert('Réponse enregistrée localement avec succès !');
     });
 
     async function saveResponse(data) {
         try {
-            await db.reponses.add(data);
+            await db.reponses.put(data, data.objectId); 
             console.log("Réponse sauvegardée dans IndexedDB.");
         } catch (error) {
             console.error("Échec de l'enregistrement dans IndexedDB:", error);
